@@ -8,6 +8,9 @@ import {AuthenticationDto} from './authentication.dto';
 import {AuthenticationPayload} from './authentication.payload';
 import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import {AuthorizationEnum} from '../authorization/authorization.enum';
+import {AuthenticationToken} from './authentication.token';
+import {authenticationConstants} from './authentication.constants';
 
 @Injectable()
 export class AuthenticationService extends BaseGridService<AuthenticationEntity> {
@@ -20,7 +23,12 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
         super(_authenticationRepository, Definition);
     }
 
-    public async signIn(model: AuthenticationDto): Promise<string> {
+    /**
+     * Signs in user to application
+     * @param model User sign in model
+     * @param roles User roles to assign to token
+     */
+    public async signIn(model: AuthenticationDto, roles: AuthorizationEnum[]): Promise<AuthenticationToken> {
 
         // Getting user
         const users: AuthenticationEntity[] = await this._authenticationRepository.find({
@@ -37,8 +45,10 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
 
         // Checking raw password with hash
         if (await bcrypt.compare(model.password, user.password)) {
-            const payload: AuthenticationPayload = {username: model.login, sub: user.id};
-            return this._jwtService.sign(payload);
+            const payload: AuthenticationPayload = {username: model.login, sub: user.id, roles};
+            const accessToken: string = this._jwtService.sign(payload);
+            const expireDate: string = new Date(new Date().setSeconds(authenticationConstants.expiresIn)).toISOString();
+            return {accessToken, expireDate};
         }
 
         // Unauthorised

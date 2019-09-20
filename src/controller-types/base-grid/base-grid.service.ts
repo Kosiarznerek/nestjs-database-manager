@@ -1,4 +1,4 @@
-import {$Values, Intersection, NonFunctionKeys, Omit} from 'utility-types';
+import {$Values, Intersection, NonFunctionKeys, Omit, Overwrite} from 'utility-types';
 import {DeepPartial, Repository} from 'typeorm';
 import {BaseGridDefinitions, BasePropertyDescriptionDto} from './base-grid.definitions';
 import {BaseGridEntity} from './base-grid.entity';
@@ -170,7 +170,10 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
             } else if (description.type === EPropertyType.Chips) {
                 const data: BaseEntity[] | undefined = await value as any;
                 parsedValue = await Promise.all((data || [])
-                    .map(async (p): Promise<FilteredOptionDataDto> => ({value: {id: p.id}, displayName: await p.getDisplayName()})),
+                    .map(async (p): Promise<FilteredOptionDataDto> => ({
+                        value: {id: p.id},
+                        displayName: await p.getDisplayName()
+                    })),
                 );
             } else {
                 parsedValue = model[key];
@@ -191,16 +194,20 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
     }
 
     /**
-     * Edits item
-     * @param item Item to edit
+     * Updates base entity based on given data
+     * @param entityToUpdate Entity model to update
+     * @param dataSource Data based on wthich entity will be updated
+     * @param keysToUpdate Property keys from entity to update
+     * @private
      */
-    public async editItem(item: EditDto): Promise<boolean> {
-
-        // Getting model
-        const model: DeepPartial<BaseEntity> = await this._repository.findOne(item.id) as any;
+    private _updateBaseEntity(
+        entityToUpdate: BaseEntity | DeepPartial<BaseEntity>,
+        dataSource: DeepPartial<BaseEntity>,
+        keysToUpdate: Array<NonFunctionKeys<BaseEntity>>,
+    ): Promise<boolean> {
 
         // Getting only properties which appear in base entity and map with description
-        const commonProperties: Record<NonFunctionKeys<Partial<BaseEntity>>, BasePropertyDescriptionDto> = this._definitions.onEdit
+        const commonProperties: Record<NonFunctionKeys<Partial<BaseEntity>>, BasePropertyDescriptionDto> = keysToUpdate
             .filter(key => Object.keys(this._definitions.entityPropertyDescription).includes(key as string))
             .reduce((p, c) => Object.assign(p, {[c]: this._definitions.entityPropertyDescription[c as string]}), {}) as any;
 
@@ -212,11 +219,11 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
 
             // Parsing value
             if (description.type === EPropertyType.Autocomplete) {
-                model[propertyKey] = (item[propertyKey] as unknown as FilteredOptionDataDto).value;
+                entityToUpdate[propertyKey] = (dataSource[propertyKey] as unknown as FilteredOptionDataDto).value;
             } else if (description.type === EPropertyType.Chips) {
-                model[propertyKey] = (item[propertyKey] as unknown as FilteredOptionDataDto[]).map(i => i.value);
+                entityToUpdate[propertyKey] = (dataSource[propertyKey] as unknown as FilteredOptionDataDto[]).map(i => i.value);
             } else {
-                model[propertyKey] = (item as unknown as BaseEntity)[propertyKey];
+                entityToUpdate[propertyKey] = (dataSource as unknown as BaseEntity)[propertyKey];
             }
 
         });
@@ -227,12 +234,28 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
                 {}, this._definitions.entityPropertyDescription[v], {name: v},
             ))
             .filter(v => v.type === EPropertyType.Chips || v.type === EPropertyType.Autocomplete)
-            .forEach(v => model[v.name] = Promise.resolve(model[v.name]));
+            .forEach(v => entityToUpdate[v.name] = Promise.resolve(entityToUpdate[v.name]));
 
         // Update in database
-        return this._repository.save(model)
+        return this._repository.save(entityToUpdate as DeepPartial<BaseEntity>)
             .then(r => true)
             .catch(r => false);
+
+    }
+
+    /**
+     * Edits item
+     * @param item Item to edit
+     */
+    public async editItem(item: EditDto): Promise<boolean> {
+
+        // Getting model
+        const model: DeepPartial<BaseEntity> = await this._repository.findOne(item.id) as any;
+
+        // Copying values
+        return this._updateBaseEntity(
+            model, item, this._definitions.onEdit as Array<NonFunctionKeys<BaseEntity>>
+        );
 
     }
 
@@ -245,40 +268,10 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
         // Creating model
         const model: BaseEntity = this._repository.create();
 
-        // Getting only properties which appear in base entity and map with description
-        const commonProperties: Record<NonFunctionKeys<Partial<BaseEntity>>, BasePropertyDescriptionDto> = this._definitions.onAdd
-            .filter(key => Object.keys(this._definitions.entityPropertyDescription).includes(key as string))
-            .reduce((p, c) => Object.assign(p, {[c]: this._definitions.entityPropertyDescription[c as string]}), {}) as any;
-
         // Copying values
-        Object.keys(commonProperties).forEach(propertyKey => {
-
-            // Getting description
-            const description: BasePropertyDescriptionDto = this._definitions.entityPropertyDescription[propertyKey];
-
-            // Parsing value
-            if (description.type === EPropertyType.Autocomplete) {
-                model[propertyKey] = (item[propertyKey] as unknown as FilteredOptionDataDto).value;
-            } else if (description.type === EPropertyType.Chips) {
-                model[propertyKey] = (item[propertyKey] as unknown as FilteredOptionDataDto[]).map(i => i.value);
-            } else {
-                model[propertyKey] = (item as unknown as BaseEntity)[propertyKey];
-            }
-
-        });
-
-        // Parse to promise all relations
-        Object.keys(commonProperties)
-            .map(v => Object.assign <{}, BasePropertyDescriptionDto, Pick<PropertyDescriptionDto, 'name'>>(
-                {}, this._definitions.entityPropertyDescription[v], {name: v},
-            ))
-            .filter(v => v.type === EPropertyType.Chips || v.type === EPropertyType.Autocomplete)
-            .forEach(v => model[v.name] = Promise.resolve(model[v.name]));
-
-        // Update in database
-        return this._repository.save(model as unknown as DeepPartial<BaseEntity>)
-            .then(r => true)
-            .catch(r => false);
+        return this._updateBaseEntity(
+            model, item, this._definitions.onAdd as any as Array<NonFunctionKeys<BaseEntity>>
+        );
 
     }
 

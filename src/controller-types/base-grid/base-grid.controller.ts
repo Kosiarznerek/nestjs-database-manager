@@ -8,6 +8,7 @@ import {PaginatorStateDto} from './dto/paginator-state.dto';
 import {GridDataDto} from './dto/grid-data.dto';
 import {FilteredOptionDataDto} from './dto/filtered-option-data.dto';
 import {AuthGuard} from '@nestjs/passport';
+import {AuthorizationGuard} from '../../authorization/authorization.guard';
 
 export class BaseGridController<BaseEntity extends BaseGridEntity,
     GridService extends BaseGridService<BaseEntity, EditDto, AddDto>,
@@ -25,7 +26,7 @@ export class BaseGridController<BaseEntity extends BaseGridEntity,
      * @param paginatorState
      */
     @Post('getData')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
     public getData(@Body() paginatorState: PaginatorStateDto): Promise<GridDataDto> {
         return this._gridService.getData(paginatorState);
     }
@@ -34,7 +35,7 @@ export class BaseGridController<BaseEntity extends BaseGridEntity,
      * Gets grid definitions
      */
     @Get('getDefinition')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
     public getDefinition(): Promise<GridDefinitionDto> {
         return this._gridService.getDefinition();
     }
@@ -44,7 +45,7 @@ export class BaseGridController<BaseEntity extends BaseGridEntity,
      * @param itemId Item id to get configuration
      */
     @Get('getEditItemConfiguration')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
     public getEditItemConfiguration(@Query('itemId') itemId: string): Promise<PropertyDescriptionDto[]> {
         return this._gridService.getEditItemConfiguration(itemId);
     }
@@ -54,7 +55,7 @@ export class BaseGridController<BaseEntity extends BaseGridEntity,
      * @param item Item to add
      */
     @Post('editItem')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
     public editItem(@Body() item: EditDto): Promise<boolean> {
         return this._gridService.editItem(item);
     }
@@ -64,7 +65,7 @@ export class BaseGridController<BaseEntity extends BaseGridEntity,
      * @param item Item to add
      */
     @Post('addItem')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
     public addItem(@Body() item: AddDto): Promise<boolean> {
         return this._gridService.addItem(item);
     }
@@ -74,7 +75,7 @@ export class BaseGridController<BaseEntity extends BaseGridEntity,
      * @param itemId Item id to remove
      */
     @Delete('removeItem')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
     public removeItem(@Query('itemId') itemId: string): Promise<boolean> {
         return this._gridService.removeItem(itemId);
     }
@@ -84,7 +85,7 @@ export class BaseGridController<BaseEntity extends BaseGridEntity,
      * @param searchPhrase Phrase to search
      */
     @Post('onFilteredOptionData')
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
     public onFilteredOptionData(@Query('searchPhrase') searchPhrase: string): Promise<FilteredOptionDataDto[]> {
         return this._gridService.onFilteredOptionData(searchPhrase);
     }

@@ -16,7 +16,7 @@ export class AuthenticationEntity extends BaseGridEntity {
     email: string;
 
     @Column({
-        update: false,
+        update: false, // disable update to avoid hashing password again
     })
     password: string;
 
