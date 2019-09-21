@@ -1,17 +1,9 @@
-import {Omit, Assign} from 'utility-types';
+import {Assign, Omit} from 'utility-types';
 import {EControllerType, MenuItemDto} from './dto/menu-item.dto';
 
 export type TSimpleMenuItem = Assign<Omit<MenuItemDto, 'routerLink'>, { children: TSimpleMenuItem[] }>;
 
 export const Definition: TSimpleMenuItem[] = [
-    {
-        displayName: 'Dashboard',
-        description: 'Prace na dashboardem w toku...',
-        routePath: 'dashboard',
-        controllerType: EControllerType.Dashboard,
-        controllerSource: null,
-        children: [],
-    },
     {
         displayName: 'Database manager',
         description: null,

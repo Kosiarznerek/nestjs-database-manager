@@ -5,7 +5,6 @@ import {Type} from 'class-transformer';
 export enum EControllerType {
     Grid = 'grid',
     Details = 'details',
-    Dashboard = 'dashboard',
     Empty = 'empty',
 }
 
@@ -28,7 +27,7 @@ export class MenuItemDto {
     @IsEnum(EControllerType)
     controllerType: EControllerType;
 
-    @ValidateIf(o => o.controllerType !== EControllerType.Empty && o.controllerType !== EControllerType.Dashboard)
+    @ValidateIf(o => o.controllerType !== EControllerType.Empty)
     @IsString()
     controllerSource: string | null;
 
