@@ -15,6 +15,7 @@ import {ResetPasswordDto} from './dto/reset-password.dto';
 import {EPropertyType, PropertyDescriptionDto} from '../controller-types/base-grid/dto/property-description.dto';
 import {BasePropertyDescriptionDto} from '../controller-types/base-grid/base-grid.definitions';
 import {EmailSenderService} from '../email-sender/email-sender.service';
+import {Omit} from 'utility-types';
 
 @Injectable()
 export class AuthenticationService extends BaseGridService<AuthenticationEntity> {
@@ -169,6 +170,39 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
 
         // Return
         return true;
+
+    }
+
+    /**
+     * Gets configuration to add database admin account
+     */
+    public async getAddDatabaseAdminAccountConfiguration(): Promise<PropertyDescriptionDto[]> {
+
+        // Getting definitions
+        const definitions = await this.getDefinition();
+
+        // Return
+        return definitions.addConfiguration;
+
+    }
+
+    /**
+     * Adds first database admin account
+     * Should be used to create first account
+     * @param model
+     */
+    public async addFirstDatabaseAdminAccount(model: Omit<AuthenticationEntity, 'id'>): Promise<boolean> {
+
+        // Counting current accounts
+        const count: number = await this._repository.count();
+
+        // Some account are created
+        if (count > 0) {
+            return false;
+        }
+
+        // Adding account
+        return this.addItem(model);
 
     }
 
