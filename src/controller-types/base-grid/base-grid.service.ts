@@ -1,4 +1,4 @@
-import {$Values, Intersection, NonFunctionKeys, Omit, Overwrite} from 'utility-types';
+import {$Values, Intersection, NonFunctionKeys, Omit} from 'utility-types';
 import {DeepPartial, Repository} from 'typeorm';
 import {BaseGridDefinitions, BasePropertyDescriptionDto} from './base-grid.definitions';
 import {BaseGridEntity} from './base-grid.entity';
@@ -196,15 +196,14 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
     /**
      * Updates base entity based on given data
      * @param entityToUpdate Entity model to update
-     * @param dataSource Data based on wthich entity will be updated
+     * @param dataSource Data based on which entity will be updated
      * @param keysToUpdate Property keys from entity to update
-     * @private
      */
-    private _updateBaseEntity(
+    protected _updateBaseEntity(
         entityToUpdate: BaseEntity | DeepPartial<BaseEntity>,
         dataSource: DeepPartial<BaseEntity>,
         keysToUpdate: Array<NonFunctionKeys<BaseEntity>>,
-    ): Promise<boolean> {
+    ): void {
 
         // Getting only properties which appear in base entity and map with description
         const commonProperties: Record<NonFunctionKeys<Partial<BaseEntity>>, BasePropertyDescriptionDto> = keysToUpdate
@@ -236,11 +235,6 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
             .filter(v => v.type === EPropertyType.Chips || v.type === EPropertyType.Autocomplete)
             .forEach(v => entityToUpdate[v.name] = Promise.resolve(entityToUpdate[v.name]));
 
-        // Update in database
-        return this._repository.save(entityToUpdate as DeepPartial<BaseEntity>)
-            .then(r => true)
-            .catch(r => false);
-
     }
 
     /**
@@ -253,9 +247,14 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
         const model: DeepPartial<BaseEntity> = await this._repository.findOne(item.id) as any;
 
         // Copying values
-        return this._updateBaseEntity(
+        this._updateBaseEntity(
             model, item, this._definitions.onEdit as Array<NonFunctionKeys<BaseEntity>>
         );
+
+        // Update in database
+        return this._repository.save(model)
+            .then(r => true)
+            .catch(r => false);
 
     }
 
@@ -269,9 +268,14 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
         const model: BaseEntity = this._repository.create();
 
         // Copying values
-        return this._updateBaseEntity(
+        this._updateBaseEntity(
             model, item, this._definitions.onAdd as any as Array<NonFunctionKeys<BaseEntity>>
         );
+
+        // Update in database
+        return this._repository.save(model as any as DeepPartial<BaseEntity>)
+            .then(r => true)
+            .catch(r => false);
 
     }
 

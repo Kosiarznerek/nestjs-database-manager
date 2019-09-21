@@ -1,10 +1,12 @@
-import {Body, Controller, Post} from '@nestjs/common';
+import {Body, Controller, Get, Post} from '@nestjs/common';
 import {BaseGridController} from '../controller-types/base-grid/base-grid.controller';
 import {AuthenticationEntity} from './authentication.entity';
 import {AuthenticationService} from './authentication.service';
-import {AuthenticationDto} from './authentication.dto';
+import {AuthenticationDto} from './dto/authentication.dto';
 import {AuthorizationEnum} from '../authorization/authorization.enum';
 import {AuthenticationToken} from './authentication.token';
+import {PropertyDescriptionDto} from '../controller-types/base-grid/dto/property-description.dto';
+import {ResetPasswordDto} from './dto/reset-password.dto';
 
 @Controller('authentication')
 export class AuthenticationController extends BaseGridController<AuthenticationEntity, AuthenticationService> {
@@ -21,16 +23,24 @@ export class AuthenticationController extends BaseGridController<AuthenticationE
      */
     @Post(AuthorizationEnum.DatabaseAdmin)
     public async signInDatabaseAdmin(@Body() model: AuthenticationDto): Promise<AuthenticationToken> {
-        return this._authenticationService.signIn(model, [AuthorizationEnum.DatabaseAdmin]);
+        return this._authenticationService.signInDatabaseAdmin(model);
     }
 
     /**
-     * Signs in user as application and returns access_token
-     * @param model Sign in model
+     * Gets controls configuration to reset Database Admin password
      */
-    @Post(AuthorizationEnum.ApplicationUser)
-    public async signInApplicationUser(@Body() model: AuthenticationDto): Promise<AuthenticationToken> {
-        return this._authenticationService.signIn(model, [AuthorizationEnum.ApplicationUser]);
+    @Get(`${AuthorizationEnum.DatabaseAdmin}/config`)
+    public async getResetDatabaseAdminPasswordConfiguration(): Promise<PropertyDescriptionDto[]> {
+        return this._authenticationService.getResetDatabaseAdminPasswordConfiguration();
+    }
+
+    /**
+     * Resets Database Admin password
+     * @param model
+     */
+    @Post(`${AuthorizationEnum.DatabaseAdmin}/reset-password`)
+    public async resetDatabaseAdminPassword(@Body() model: ResetPasswordDto): Promise<boolean> {
+        return this._authenticationService.resetDatabaseAdminPassword(model);
     }
 
 }

@@ -1,16 +1,20 @@
-import {Injectable, UnauthorizedException} from '@nestjs/common';
+import {Injectable, InternalServerErrorException, UnauthorizedException} from '@nestjs/common';
 import {BaseGridService} from '../controller-types/base-grid/base-grid.service';
 import {AuthenticationEntity} from './authentication.entity';
 import {Repository} from 'typeorm';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Definition} from './authentication.definition';
-import {AuthenticationDto} from './authentication.dto';
+import {AuthenticationDto} from './dto/authentication.dto';
 import {AuthenticationPayload} from './authentication.payload';
 import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import {AuthorizationEnum} from '../authorization/authorization.enum';
 import {AuthenticationToken} from './authentication.token';
 import {authenticationConstants} from './authentication.constants';
+import {ResetPasswordDto} from './dto/reset-password.dto';
+import {EPropertyType, PropertyDescriptionDto} from '../controller-types/base-grid/dto/property-description.dto';
+import {BasePropertyDescriptionDto} from '../controller-types/base-grid/base-grid.definitions';
+import {EmailSenderService} from '../email-sender/email-sender.service';
 
 @Injectable()
 export class AuthenticationService extends BaseGridService<AuthenticationEntity> {
@@ -19,6 +23,7 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
         @InjectRepository(AuthenticationEntity)
         private readonly _authenticationRepository: Repository<AuthenticationEntity>,
         private readonly _jwtService: JwtService,
+        private readonly _emailSenderService: EmailSenderService,
     ) {
         super(_authenticationRepository, Definition);
     }
@@ -26,9 +31,8 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
     /**
      * Signs in user to application
      * @param model User sign in model
-     * @param roles User roles to assign to token
      */
-    public async signIn(model: AuthenticationDto, roles: AuthorizationEnum[]): Promise<AuthenticationToken> {
+    public async signInDatabaseAdmin(model: AuthenticationDto): Promise<AuthenticationToken> {
 
         // Getting user
         const users: AuthenticationEntity[] = await this._authenticationRepository.find({
@@ -45,10 +49,21 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
 
         // Checking raw password with hash
         if (await bcrypt.compare(model.password, user.password)) {
-            const payload: AuthenticationPayload = {username: model.login, sub: user.id, roles};
+
+            // Creating payload
+            const payload: AuthenticationPayload = {
+                username: model.login,
+                sub: user.id,
+                role: AuthorizationEnum.DatabaseAdmin,
+            };
+
+            // Generating user token
             const accessToken: string = this._jwtService.sign(payload);
             const expireDate: string = new Date(new Date().setSeconds(authenticationConstants.expiresIn)).toISOString();
+
+            // Return token
             return {accessToken, expireDate};
+
         }
 
         // Unauthorised
@@ -57,10 +72,10 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
     }
 
     /**
-     * Checks if user exists based on given payload
+     * Checks if Database Admin user exists based on given payload
      * @param payload User's payload
      */
-    public async userExists(payload: AuthenticationPayload): Promise<boolean> {
+    public async databaseAdminExists(payload: AuthenticationPayload): Promise<boolean> {
 
         // Getting user
         const users: number = await this._authenticationRepository.count({
@@ -69,6 +84,91 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
 
         // Return statement
         return users === 1;
+
+    }
+
+    /**
+     * Gets controls configuration to resets Database Admin password
+     */
+    public async getResetDatabaseAdminPasswordConfiguration(): Promise<PropertyDescriptionDto[]> {
+
+        // Creating configuration for each property in model
+        const descriptionModel: Record<keyof ResetPasswordDto, BasePropertyDescriptionDto> = {
+            login: {
+                displayName: 'Login',
+                value: null,
+                type: EPropertyType.Text,
+                validator: {
+                    isRequired: true,
+                    maxLength: null,
+                    minLength: null,
+                },
+            },
+            email: {
+                displayName: 'Adres email',
+                value: null,
+                type: EPropertyType.Email,
+                validator: {
+                    isRequired: true,
+                    maxLength: null,
+                    minLength: null,
+                },
+            },
+        };
+
+        // Return only properties with assigned names
+        return Object.keys(descriptionModel)
+            .map(key => Object.assign({name: key}, descriptionModel[key]));
+
+    }
+
+    /**
+     * Resets Database Admin password
+     * Checks login and email, sets token as expired (if user is signed in),
+     * then set random password and sends it to the user
+     * @param model
+     */
+    public async resetDatabaseAdminPassword(model: ResetPasswordDto): Promise<boolean> {
+
+        // Getting user
+        const usersMath: AuthenticationEntity[] = await this._authenticationRepository.find({
+            where: {
+                login: model.login,
+                email: model.email,
+            },
+        });
+
+        // User not found
+        if (usersMath.length !== 1) {
+            return false;
+        }
+
+        // Extracting user
+        const [user] = usersMath;
+
+        // Delete and insert same user with random password
+        // to set token as unauthenticated, because each time validate method
+        // is being called in .strategy user is being checked via Id
+        await this._authenticationRepository.remove(user);
+        user.id = undefined;
+        user.setRandomPassword();
+        const newPassword = user.password; // get password before hashing
+        await this._authenticationRepository.save(user);
+
+        // Send email to user with new password
+        const success = await this._emailSenderService.sendEmail({
+            to: user.email,
+            subject: 'Zresetowano hasło do konta Database Manager',
+            text: `Nowe hasło to: ${newPassword}`,
+        });
+
+        // Error
+        if (!success) {
+            throw new InternalServerErrorException('Unable to send mail with new password');
+        }
+
+        // Return
+        return true;
 
     }
 

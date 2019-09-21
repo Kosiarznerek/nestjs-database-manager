@@ -1,10 +1,10 @@
 /**
  * Contains available user roles in backend application
  */
-export const enum AuthorizationEnum {
+export enum AuthorizationEnum {
 
     /**
-     * Has permissions only for Database Manager
+     * Has permissions only for Database Manager API
      */
     DatabaseAdmin = 'DatabaseAdmin',
 

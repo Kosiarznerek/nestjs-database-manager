@@ -21,7 +21,7 @@ export class AuthenticationStrategy extends PassportStrategy(Strategy) {
     public async validate(payload: AuthenticationPayload): Promise<AuthenticationPayload> {
 
         // Throw exception if user not exists in database any more
-        if (!(await this._authenticationService.userExists(payload))) {
+        if (!(await this._authenticationService.databaseAdminExists(payload))) {
             throw new UnauthorizedException();
         }
 

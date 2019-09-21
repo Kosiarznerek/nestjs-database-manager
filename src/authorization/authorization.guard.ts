@@ -34,9 +34,8 @@ export class AuthorizationGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const user: AuthenticationPayload = request.user;
 
-        // Return based on user roles
-        const hasRole = () => user.roles.some(role => roles.includes(role));
-        return user && user.roles && hasRole();
+        // Return based on user role
+        return user && roles.includes(user.role);
 
     }
 

@@ -1,4 +1,4 @@
-import {IsArray, IsInt, IsString} from 'class-validator';
+import {IsEnum, IsInt, IsString} from 'class-validator';
 import {AuthorizationEnum} from '../authorization/authorization.enum';
 
 export class AuthenticationPayload {
@@ -9,7 +9,7 @@ export class AuthenticationPayload {
     @IsInt()
     sub: number;
 
-    @IsArray()
-    roles: AuthorizationEnum[];
+    @IsEnum(AuthorizationEnum)
+    role: AuthorizationEnum;
 
 }

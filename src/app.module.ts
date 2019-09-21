@@ -7,6 +7,7 @@ import {ApplicationUsersInfoModule} from './controllers/application-users-info/a
 import {ProductsModule} from './controllers/products/products.module';
 import {UsersOrdersModule} from './controllers/users-orders/users-orders.module';
 import {AuthenticationModule} from './authentication/authentication.module';
+import { EmailSenderService } from './email-sender/email-sender.service';
 
 @Module({
     imports: [
@@ -20,7 +21,7 @@ import {AuthenticationModule} from './authentication/authentication.module';
         AuthenticationModule,
     ],
     controllers: [],
-    providers: [],
+    providers: [EmailSenderService],
 })
 export class AppModule {
 }

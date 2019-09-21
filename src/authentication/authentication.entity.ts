@@ -24,9 +24,21 @@ export class AuthenticationEntity extends BaseGridEntity {
         return this.login;
     }
 
+    /**
+     * Hash password before inserting new user
+     */
     @BeforeInsert()
     private async hashPassword(): Promise<void> {
         this.password = await bcrypt.hash(this.password, 15);
+    }
+
+    /**
+     * Set user random password
+     */
+    public setRandomPassword(): void {
+        // tslint:disable-next-line:no-bitwise
+        const random = () => (((1 + Math.random()) * 0x10000) | 0).toString(16);
+        this.password = `${random()}${random()}`;
     }
 
 }

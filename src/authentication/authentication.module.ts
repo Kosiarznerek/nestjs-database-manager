@@ -6,6 +6,7 @@ import {AuthenticationEntity} from './authentication.entity';
 import {authenticationConstants} from './authentication.constants';
 import {JwtModule} from '@nestjs/jwt';
 import {AuthenticationStrategy} from './authentication.strategy';
+import {EmailSenderService} from '../email-sender/email-sender.service';
 
 @Module({
     imports: [
@@ -17,7 +18,11 @@ import {AuthenticationStrategy} from './authentication.strategy';
             AuthenticationEntity,
         ]),
     ],
-    providers: [AuthenticationService, AuthenticationStrategy],
+    providers: [
+        AuthenticationService,
+        AuthenticationStrategy,
+        EmailSenderService,
+    ],
     controllers: [AuthenticationController],
     exports: [AuthenticationService],
 })

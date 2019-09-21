@@ -16,7 +16,7 @@ export const Definition: BaseGridDefinitions<AuthenticationEntity> = {
 
     viewHeaderDescription: null,
 
-    onEdit: ['id', 'login', 'email'],
+    onEdit: ['id', 'login', 'email'], // disable update password to avoid hashing again
 
     onAdd: ['login', 'email', 'password'],
 
