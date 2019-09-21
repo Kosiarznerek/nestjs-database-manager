@@ -22,7 +22,7 @@ export class AuthenticationController extends BaseGridController<AuthenticationE
      * Signs in user as database administrator and returns access_token
      * @param model Sign in model
      */
-    @Post(AuthorizationEnum.DatabaseAdmin)
+    @Post(`${AuthorizationEnum.DatabaseAdmin}`)
     public async signInDatabaseAdmin(@Body() model: AuthenticationDto): Promise<AuthenticationToken> {
         return this._authenticationService.signInDatabaseAdmin(model);
     }
