@@ -30,6 +30,57 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
     }
 
     /**
+     * Checks if Database Admin user exists based on given payload
+     * @param payload User's payload
+     */
+    public async databaseAdminExists(payload: AuthenticationPayload): Promise<boolean> {
+
+        // Getting user
+        const users: number = await this._authenticationRepository.count({
+            where: {id: payload.sub},
+        });
+
+        // Return statement
+        return users === 1;
+
+    }
+
+    /**
+     * Gets controls configuration to sign in Database Admin
+     */
+    public async getSignInDatabaseAdminConfiguration(): Promise<PropertyDescriptionDto[]> {
+
+        // Creating configuration for each property in model
+        const descriptionModel: Record<keyof AuthenticationDto, BasePropertyDescriptionDto> = {
+            login: {
+                displayName: 'Login',
+                value: null,
+                type: EPropertyType.Text,
+                validator: {
+                    isRequired: true,
+                    maxLength: null,
+                    minLength: null,
+                },
+            },
+            password: {
+                displayName: 'Hasło',
+                value: null,
+                type: EPropertyType.Password,
+                validator: {
+                    isRequired: true,
+                    maxLength: null,
+                    minLength: null,
+                },
+            },
+        };
+
+        // Return only properties with assigned names
+        return Object.keys(descriptionModel)
+            .map(key => Object.assign({name: key}, descriptionModel[key]));
+
+    }
+
+    /**
      * Signs in user to application
      * @param model User sign in model
      */
@@ -69,22 +120,6 @@ export class AuthenticationService extends BaseGridService<AuthenticationEntity>
 
         // Unauthorised
         throw new UnauthorizedException();
-
-    }
-
-    /**
-     * Checks if Database Admin user exists based on given payload
-     * @param payload User's payload
-     */
-    public async databaseAdminExists(payload: AuthenticationPayload): Promise<boolean> {
-
-        // Getting user
-        const users: number = await this._authenticationRepository.count({
-            where: {id: payload.sub},
-        });
-
-        // Return statement
-        return users === 1;
 
     }
 

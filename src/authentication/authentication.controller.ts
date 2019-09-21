@@ -19,6 +19,14 @@ export class AuthenticationController extends BaseGridController<AuthenticationE
     }
 
     /**
+     * Gets controls configuration to sign in database manager
+     */
+    @Get(`${AuthorizationEnum.DatabaseAdmin}`)
+    public async getSignInDatabaseAdminConfiguration(): Promise<PropertyDescriptionDto[]> {
+        return this._authenticationService.getSignInDatabaseAdminConfiguration();
+    }
+
+    /**
      * Signs in user as database administrator and returns access_token
      * @param model Sign in model
      */
