@@ -33,6 +33,14 @@ export const Definition: TSimpleMenuItem[] = [
         ],
     },
     {
+        displayName: 'System plików',
+        description: `Tu znajdują się wszystkie pliki.`,
+        routePath: 'files',
+        controllerType: EControllerType.Files,
+        controllerSource: 'file-system',
+        children: [],
+    },
+    {
         displayName: 'Użytkownicy aplikacji',
         description: `
         Tu znajdują się wszyscy użytkownicy aplikacji.

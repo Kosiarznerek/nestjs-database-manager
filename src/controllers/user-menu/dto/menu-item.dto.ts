@@ -5,6 +5,7 @@ import {Type} from 'class-transformer';
 export enum EControllerType {
     Grid = 'grid',
     Details = 'details',
+    Files = 'files',
     Empty = 'empty',
 }
 
