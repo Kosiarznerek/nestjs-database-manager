@@ -11,6 +11,6 @@ export const authenticationConstants = {
     /**
      * Token expiration time in seconds
      */
-    expiresIn: 60,
+    expiresIn: 60 * 60 * 24,
 
 };
