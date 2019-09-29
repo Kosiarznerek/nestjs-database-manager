@@ -23,4 +23,10 @@ export class FileInformationDto {
     @IsBoolean()
     deletable: boolean;
 
+    /**
+     * Is user able to download file
+     */
+    @IsBoolean()
+    downloadable: boolean;
+
 }

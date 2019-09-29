@@ -1,4 +1,4 @@
-[ ] Dodanie obsługi typu pliki
+[x] Dodanie obsługi typu pliki
 [ ] Dodanie obsługi typu time
 [ ] Domyślny paginator z definicji (grid)
 [x] Zwracanie expires date w tokenie

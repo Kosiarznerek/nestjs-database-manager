@@ -11,6 +11,7 @@ import {Authorization} from '../../authorization/authorization.decorator';
 import {AuthorizationEnum} from '../../authorization/authorization.enum';
 import {FilesInterceptor} from '@nestjs/platform-express';
 import {Response} from 'express';
+import {FilteredOptionDataDto} from '../base-grid/dto/filtered-option-data.dto';
 
 export class BaseFilesController<BaseEntity extends BaseFilesEntity, FilesService extends BaseFilesService<BaseEntity>> {
 
@@ -95,6 +96,17 @@ export class BaseFilesController<BaseEntity extends BaseFilesEntity, FilesServic
     public uploadFile(@UploadedFiles() files: Express.Multer.File[]): Promise<boolean> {
         const [file] = files;
         return this._filesService.uploadFile(file);
+    }
+
+    /**
+     * Provides data for autocomplete and chips
+     * @param searchPhrase Phrase to search
+     */
+    @Post('onFilteredOptionData')
+    @Authorization(AuthorizationEnum.DatabaseAdmin)
+    @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+    public onFilteredOptionData(@Query('searchPhrase') searchPhrase: string): Promise<FilteredOptionDataDto[]> {
+        return this._filesService.onFilteredOptionData(searchPhrase);
     }
 
 }

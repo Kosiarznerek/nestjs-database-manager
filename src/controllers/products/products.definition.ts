@@ -19,9 +19,9 @@ export const Definition: BaseGridDefinitions<ProductsEntity> = {
         return `Zamówiono ${ordersAmount}`;
     },
 
-    onEdit: ['id', 'name', 'expireDate'],
+    onEdit: ['id', 'name', 'expireDate', 'photos', 'photoThumbnail'],
 
-    onAdd: ['name', 'expireDate'],
+    onAdd: ['name', 'expireDate', 'photos', 'photoThumbnail'],
 
     entityPropertyDescription: {
         id: {
@@ -60,6 +60,28 @@ export const Definition: BaseGridDefinitions<ProductsEntity> = {
             value: null,
             type: EPropertyType.Chips,
             onFilteredOptionData: 'users-orders/onFilteredOptionData',
+            validator: {
+                isRequired: true,
+                maxLength: null,
+                minLength: null,
+            },
+        },
+        photos: {
+            displayName: 'Zdjęcia',
+            value: null,
+            type: EPropertyType.Chips,
+            onFilteredOptionData: 'products-photos/onFilteredOptionData',
+            validator: {
+                isRequired: true,
+                maxLength: null,
+                minLength: null,
+            },
+        },
+        photoThumbnail: {
+            displayName: 'Miniaturka',
+            value: null,
+            type: EPropertyType.Autocomplete,
+            onFilteredOptionData: 'products-photos/onFilteredOptionData',
             validator: {
                 isRequired: true,
                 maxLength: null,

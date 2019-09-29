@@ -1,9 +1,10 @@
 import {BeforeInsert, BeforeUpdate, Column, PrimaryGeneratedColumn} from 'typeorm';
+import {BaseGridEntity} from '../base-grid/base-grid.entity';
 
 /**
  * Base entity
  */
-export abstract class BaseFilesEntity {
+export abstract class BaseFilesEntity implements BaseGridEntity {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -25,12 +26,6 @@ export abstract class BaseFilesEntity {
      */
     @Column()
     contentType: string;
-
-    /**
-     * Is file deletable
-     */
-    @Column({default: true})
-    deletable: boolean;
 
     /**
      * Last change of files data eg. name
@@ -70,6 +65,14 @@ export abstract class BaseFilesEntity {
     @BeforeUpdate()
     private setLastUpdateDate() {
         this._lastUpdateDate = new Date();
+    }
+
+    /**
+     * Gets file display name
+     * Used in chips and autocompletes when entity has relations
+     */
+    public getDisplayName(): string | Promise<string> {
+        return `${this.name}.${this.extension}`;
     }
 
 }

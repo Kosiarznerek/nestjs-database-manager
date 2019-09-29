@@ -7,12 +7,13 @@ import {Assign} from 'utility-types';
 import {FileInformationDto} from './dto/file-information.dto';
 import {mkdir, readFile, unlink, writeFile} from 'fs';
 import {Readable} from 'stream';
+import {FilteredOptionDataDto} from '../base-grid/dto/filtered-option-data.dto';
 
 export class BaseFilesService<BaseEntity extends BaseFilesEntity> {
 
     protected constructor(
         protected readonly _repository: Repository<BaseEntity>,
-        protected readonly _definitions: BaseFilesDefinitions,
+        protected readonly _definitions: BaseFilesDefinitions<BaseEntity>,
     ) {
     }
 
@@ -62,11 +63,16 @@ export class BaseFilesService<BaseEntity extends BaseFilesEntity> {
         return Object.assign<PaginatorStateDto, { values: FileInformationDto[] }>(
             paginatorState,
             {
-                values: allData.map(v => ({
+                values: await Promise.all(allData.map(async v => ({
                     id: v.id,
                     name: v.name,
-                    deletable: v.deletable,
-                })),
+                    deletable: typeof this._definitions.allowDelete === 'boolean'
+                        ? this._definitions.allowDelete
+                        : await this._definitions.allowDelete(v),
+                    downloadable: typeof this._definitions.allowDownload === 'boolean'
+                        ? this._definitions.allowDownload
+                        : await this._definitions.allowDownload(v),
+                }))),
             },
         );
 
@@ -98,24 +104,40 @@ export class BaseFilesService<BaseEntity extends BaseFilesEntity> {
      */
     public async deleteFile(id: number): Promise<boolean> {
 
+        // Deleting not allowed
+        if (typeof this._definitions.allowDelete === 'boolean' && !this._definitions.allowDelete) {
+            return false;
+        }
+
         // Getting file model
         const model: BaseEntity = await this._repository.findOne(id);
 
-        // Remove from folder
-        const success = await new Promise((resolve, reject) => unlink(
-            `__uploads__/${this._definitions.saveFilePath}/${model.id}.${model.extension}`,
-            err => err ? reject() : resolve(),
-        )).then(r => true).catch(() => false);
-
-        // No success
-        if (!success) {
+        // Deleting not allowed
+        if (
+            typeof this._definitions.allowDelete === 'function' &&
+            (await this._definitions.allowDelete(model)) === false
+        ) {
             return false;
         }
 
         // Remove from db
-        return this._repository.remove(model)
+        const removedFromDb: boolean = await this._repository.remove(model)
             .then(r => true)
             .catch(() => false);
+
+        // No success
+        if (!removedFromDb) {
+            return false;
+        }
+
+        // Remove from folder
+        await new Promise((resolve, reject) => unlink(
+            `__uploads__/${this._definitions.saveFilePath}/${model.id}.${model.extension}`,
+            err => err ? reject() : resolve(),
+        )).then(r => true).catch(() => false);
+
+        // Return success
+        return true;
 
     }
 
@@ -125,8 +147,21 @@ export class BaseFilesService<BaseEntity extends BaseFilesEntity> {
      */
     public async getFileBuffer(id: number): Promise<{ entity: BaseEntity, buffer: Buffer }> {
 
+        // Download not allowed
+        if (typeof this._definitions.allowDownload === 'boolean' && !this._definitions.allowDownload) {
+            return null;
+        }
+
         // Getting file model
         const entity: BaseEntity = await this._repository.findOne(id);
+
+        // Download not allowed
+        if (
+            typeof this._definitions.allowDownload === 'function' &&
+            (await this._definitions.allowDownload(entity)) === false
+        ) {
+            return null;
+        }
 
         // Getting file
         const buffer: Buffer = await new Promise((resolve, reject) => readFile(
@@ -221,6 +256,26 @@ export class BaseFilesService<BaseEntity extends BaseFilesEntity> {
 
         // Success
         return true;
+
+    }
+
+    /**
+     * Provides data for autocomplete and chips
+     * @param searchPhrase
+     */
+    public async onFilteredOptionData(searchPhrase: string): Promise<FilteredOptionDataDto[]> {
+
+        // Getting all data
+        const data: Array<Promise<FilteredOptionDataDto>> = (await this._repository.find()).map(async v => ({
+            value: {id: v.id},
+            displayName: await v.getDisplayName(),
+        }));
+
+        // Resolving all display names
+        const parsedData: FilteredOptionDataDto[] = await Promise.all(data);
+
+        // Returning filtered data
+        return parsedData.filter(v => v.displayName.toLowerCase().indexOf(searchPhrase.toLowerCase()) >= 0);
 
     }
 

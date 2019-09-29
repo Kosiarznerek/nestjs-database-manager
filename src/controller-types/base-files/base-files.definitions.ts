@@ -1,9 +1,10 @@
 import {IsBoolean, IsInt, IsString} from 'class-validator';
+import {BaseFilesEntity} from './base-files.entity';
 
 /**
  * Files definitions
  */
-export class BaseFilesDefinitions {
+export class BaseFilesDefinitions<FileEntity extends BaseFilesEntity> {
 
     /**
      * Where to save files
@@ -16,6 +17,18 @@ export class BaseFilesDefinitions {
      */
     @IsBoolean()
     allowUpload: boolean;
+
+    /**
+     * Should download be allowed
+     */
+    @IsBoolean()
+    allowDownload: boolean | ((entity: FileEntity) => Promise<boolean> | boolean);
+
+    /**
+     * Should delete files be allowed
+     */
+    @IsBoolean()
+    allowDelete: boolean | ((entity: FileEntity) => Promise<boolean> | boolean);
 
     /**
      * Which file types are allowed (eg. pdf, mp3)
