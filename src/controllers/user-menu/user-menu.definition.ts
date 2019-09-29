@@ -33,42 +33,62 @@ export const Definition: TSimpleMenuItem[] = [
         ],
     },
     {
-        displayName: 'System plików',
-        description: `Tu znajdują się wszystkie pliki.`,
-        routePath: 'files',
-        controllerType: EControllerType.Files,
-        controllerSource: 'file-system',
-        children: [],
-    },
-    {
         displayName: 'Użytkownicy aplikacji',
-        description: `
-        Tu znajdują się wszyscy użytkownicy aplikacji.
-        `,
+        description: null,
         routePath: 'application-users',
-        controllerType: EControllerType.Grid,
-        controllerSource: 'application-users',
-        children: [],
-    },
-    {
-        displayName: 'Użytkownicy aplikacji - informacje',
-        description: `
-        Tu znajdują się dodatkowe informacje użytkowników aplikacji.
-        `,
-        routePath: 'application-users-info',
-        controllerType: EControllerType.Grid,
-        controllerSource: 'application-users-info',
-        children: [],
+        controllerType: EControllerType.Empty,
+        controllerSource: null,
+        children: [
+            {
+                displayName: 'Konta',
+                description: `
+                Tu znajdują się wszyscy użytkownicy aplikacji.
+                `,
+                routePath: 'accounts',
+                controllerType: EControllerType.Grid,
+                controllerSource: 'application-users',
+                children: [],
+            },
+            {
+                displayName: 'Informacje szczegółowe',
+                description: `
+                Tu znajdują się dodatkowe informacje użytkowników aplikacji.
+                `,
+                routePath: 'information',
+                controllerType: EControllerType.Grid,
+                controllerSource: 'application-users-info',
+                children: [],
+            },
+        ],
     },
     {
         displayName: 'Produkty',
-        description: `
-        Tu znajdują się dostępne w sklepie produkty.
-        `,
+        description: null,
         routePath: 'products',
-        controllerType: EControllerType.Grid,
-        controllerSource: 'products',
-        children: [],
+        controllerType: EControllerType.Empty,
+        controllerSource: null,
+        children: [
+            {
+                displayName: 'Zarządzanie',
+                description: `
+                Tu znajdują się dostępne w sklepie produkty.
+                `,
+                routePath: 'management',
+                controllerType: EControllerType.Grid,
+                controllerSource: 'products',
+                children: [],
+            },
+            {
+                displayName: 'Zdjęcia',
+                description: `
+                Tu znajduje baza danych zdjęć do produktów
+                `,
+                routePath: 'photos',
+                controllerType: EControllerType.Files,
+                controllerSource: 'products-photos',
+                children: [],
+            },
+        ],
     },
     {
         displayName: 'Zamówienia użytkowników',

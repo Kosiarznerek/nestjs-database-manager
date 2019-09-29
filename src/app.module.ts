@@ -7,7 +7,8 @@ import {ApplicationUsersInfoModule} from './controllers/application-users-info/a
 import {ProductsModule} from './controllers/products/products.module';
 import {UsersOrdersModule} from './controllers/users-orders/users-orders.module';
 import {AuthenticationModule} from './authentication/authentication.module';
-import { EmailSenderService } from './email-sender/email-sender.service';
+import {EmailSenderService} from './email-sender/email-sender.service';
+import {ProductsPhotosModule} from './controllers/products-photos/products-photos.module';
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import { EmailSenderService } from './email-sender/email-sender.service';
         ApplicationUsersModule,
         ApplicationUsersInfoModule,
         ProductsModule,
+        ProductsPhotosModule,
         UsersOrdersModule,
         AuthenticationModule,
     ],
