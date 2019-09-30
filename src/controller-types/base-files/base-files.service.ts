@@ -8,6 +8,7 @@ import {FileInformationDto} from './dto/file-information.dto';
 import {mkdir, readFile, unlink, writeFile} from 'fs';
 import {Readable} from 'stream';
 import {FilteredOptionDataDto} from '../base-grid/dto/filtered-option-data.dto';
+import {Express} from 'express';
 
 export class BaseFilesService<BaseEntity extends BaseFilesEntity> {
 

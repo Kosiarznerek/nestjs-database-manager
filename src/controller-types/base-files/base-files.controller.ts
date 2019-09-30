@@ -12,6 +12,7 @@ import {AuthorizationEnum} from '../../authorization/authorization.enum';
 import {FilesInterceptor} from '@nestjs/platform-express';
 import {Response} from 'express';
 import {FilteredOptionDataDto} from '../base-grid/dto/filtered-option-data.dto';
+import {Express} from 'express';
 
 export class BaseFilesController<BaseEntity extends BaseFilesEntity, FilesService extends BaseFilesService<BaseEntity>> {
 
