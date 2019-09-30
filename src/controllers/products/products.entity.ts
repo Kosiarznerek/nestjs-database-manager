@@ -12,6 +12,9 @@ export class ProductsEntity extends BaseGridEntity {
     @Column()
     expireDate: Date;
 
+    @Column()
+    expireTime: Date;
+
     @ManyToMany(type => UsersOrdersEntity, type => type.products)
     @JoinTable()
     orders: Promise<UsersOrdersEntity[]>;

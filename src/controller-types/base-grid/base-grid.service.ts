@@ -97,6 +97,8 @@ export class BaseGridService<BaseEntity extends BaseGridEntity,
                             parsedValues = [];
                         } else if (description.type === EPropertyType.Date) {
                             parsedValues = [dateFormat(new Date(value as any as string), 'dd.mm.yyyy')];
+                        } else if (description.type === EPropertyType.Time) {
+                            parsedValues = [dateFormat(new Date(value as any as string), 'HH:MM')];
                         } else if (description.type === EPropertyType.Boolean) {
                             parsedValues = [value ? 'tak' : 'nie'];
                         } else {

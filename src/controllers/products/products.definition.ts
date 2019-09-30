@@ -10,7 +10,7 @@ export const Definition: BaseGridDefinitions<ProductsEntity> = {
 
     allowRemove: true,
 
-    onView: ['name', 'expireDate', 'orders'],
+    onView: ['name', 'expireDate', 'expireTime', 'orders'],
 
     viewHeaderTitle: entity => `Produkt ${entity.name}`,
 
@@ -19,9 +19,9 @@ export const Definition: BaseGridDefinitions<ProductsEntity> = {
         return `Zamówiono ${ordersAmount}`;
     },
 
-    onEdit: ['id', 'name', 'expireDate', 'photos', 'photoThumbnail'],
+    onEdit: ['id', 'name', 'expireDate', 'expireTime', 'photos', 'photoThumbnail'],
 
-    onAdd: ['name', 'expireDate', 'photos', 'photoThumbnail'],
+    onAdd: ['name', 'expireDate', 'expireTime', 'photos', 'photoThumbnail'],
 
     entityPropertyDescription: {
         id: {
@@ -49,6 +49,16 @@ export const Definition: BaseGridDefinitions<ProductsEntity> = {
             displayName: 'Data ważności',
             value: null,
             type: EPropertyType.Date,
+            validator: {
+                isRequired: true,
+                maxLength: null,
+                minLength: null,
+            },
+        },
+        expireTime: {
+            displayName: 'Godzina ważności',
+            value: null,
+            type: EPropertyType.Time,
             validator: {
                 isRequired: true,
                 maxLength: null,

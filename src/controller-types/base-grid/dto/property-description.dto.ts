@@ -11,6 +11,7 @@ export enum EPropertyType {
     Number = 'number',
     Email = 'email',
     Date = 'date',
+    Time = 'time',
     Boolean = 'boolean',
     Hidden = 'hidden',
     Autocomplete = 'autocomplete',
